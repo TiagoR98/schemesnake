@@ -9,17 +9,93 @@
 
 (define snake (list (cons 0 2) (cons 1 2) (cons 1 3) (cons 1 4) (cons 1 5) (cons 2 5)))
 
-(celulas tabjogo snake 'l 0 0)
-
-(define snake-move 
+(define novo-objeto
   (lambda (snake)
-    (limpa-tab tabjogo 26)
+    (let ((coord (cons (random (cel-x tabjogo)) (random (cel-y tabjogo)))))
+    (celula tabjogo (car coord) (cdr coord) 'l 18)
+    (celula tabjogo (car coord) (cdr coord) 'x 26)
+      
+      coord)))
+
+(define objeto (novo-objeto snake))
+
+;procedimento de inicio do jogo
+(define jogo
+  (lambda (snake)
+    ;incialização da cobra
     (celulas tabjogo snake 'l 0 0)
-    (letrec ((snake-next (list-tail snake 1))
-          (x (car (list-ref snake-next (sub1 (length snake-next)))))
-          (y (cdr (list-ref snake-next (sub1 (length snake-next)))))) 
+    
+    (letrec ((direcao 'right)
+             ;procedimento auxiliar responsável por ler o teclado e atualizar recusivamente o jogo
+             (principal
+              (lambda (snake)
+                ;intervalo de tempo para controlar a velocidade do jogo
+                (sleep 0.03)
+                ;deteção da tecla pressionada no moomento
+                (let ((tecla (tecla-pressionada #f)))
+                  
+                ;mudança de direção apenas se for pressionada uma tecla
+                (if (not (void? tecla))
+                    ;impede que o jogador vire a cobra contra si mesma (180 graus)
+                    (if (not(or (and (eq? direcao 'right) (eq? tecla 'left))
+                            (and (eq? direcao 'left) (eq? tecla 'right))
+                            (and (eq? direcao 'up) (eq? tecla 'down))
+                            (and (eq? direcao 'down) (eq? tecla 'up))))
+                    (set! direcao tecla)))
+                  
+                  
+                  ;chamada pelo procedimento que calcula a nova cobra após um novo instante do jogo
+                    (principal (snake-move snake direcao))))))
+             (principal snake))))
+             
+             
+
+
+
+(define snake-move
+  (lambda (snake direcao)  
+    
+    (let* (;eliminação do último pixel na nova cobra
+           (snake-next (list-tail snake 1))
+           ;obtenção das coordenadas do primeiro pixel da cobra (atual)
+             (x (car (list-ref snake-next (sub1 (length snake-next)))))
+             (y (cdr (list-ref snake-next (sub1 (length snake-next))))))
       
+      ;cálculo do primeiro pixel da nova cobra de acordo com a direção do jogo
+      (cond
+        ((eq? direcao 'right) (set! x (add1 x)))
+        ((eq? direcao 'left) (set! x (sub1 x)))
+        ((eq? direcao 'up) (set! y (sub1 y)))
+        ((eq? direcao 'down) (set! y (add1 y))))
       
-      (append! snake-next (list (cons (add1 x) y)))
-      (sleep 0.02)
-      (snake-move snake-next))))
+      ;se a cobra colidir com algum dos limites do tabuleiro, reaparece no limite oposto
+      (cond ((= x (cel-x tabjogo)) (set! x 0))
+            ((< x 0) (set! x (sub1 (cel-x tabjogo))))
+            ((= y (cel-y tabjogo)) (set! y 0))
+            ((< y 0) (set! y (sub1 (cel-y tabjogo)))))
+      
+      ;adição do novo pixel à lista da cobra
+      (append! snake-next (list (cons x y))) 
+     
+            
+      ;atualização dos pixeis em questão (primeiro e último)
+      (celula tabjogo x y 'l 0)
+      (if (and (eq? (car objeto) x) (eq? (cdr objeto) y))
+          (begin
+            (set! snake-next (append (list (car snake)) snake-next))
+            (set! objeto (novo-objeto snake-next))) 
+          (celula tabjogo (caar snake) (cdr (car snake)) 'l 26))
+      (display (length snake-next))
+      (newline)
+  
+      (indice-celula tabjogo x y)
+      
+      ;retorno da nova lista da cobra
+      snake-next)))
+
+
+
+    
+
+
+(jogo snake)
