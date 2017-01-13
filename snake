@@ -2,8 +2,9 @@
 (require (lib "swgr.scm" "user-feup"))
 (require (lib "tabuleiro.scm" "user-feup"))
 
+
 ;janela do jogo
-(janela 1200 700 "janela_jogo")
+(janela 1190 720 "schemesnake alpha")
 
 (define tabjogo (tabuleiro 10 690 30 39 22))
 
@@ -28,6 +29,75 @@
       coord)))
 
 (define objeto (novo-objeto init-snake))
+
+(define pontalta 0)
+(define pont 0)
+(define pontalta-pos (list 1120 10))
+(define pont-pos (list 820 10))
+
+;desenha legenda
+(define init-legenda
+ (lambda ()
+   
+   (move (list 10 698))
+   (cor 0)
+   (desenha-txt "schemesnake alpha build                                  Fundamentos da Programação  FEUP  2017                                 Programado por Tiago Ribeiro")
+   
+   
+   (move (list 10 10))
+   (desenha-txt "Legenda:     ")
+   
+   (cor 18)
+   (desenha-txt (symbol->string 'X))
+   (cor 0)
+   (desenha-txt " - Item Normal      ")
+   
+   (cor 18)
+   (desenha-txt (symbol->string 'X))
+   (cor 0)
+   (desenha-txt " - Item Normal      ")
+   
+   (cor 18)
+   (desenha-txt (symbol->string 'X))
+   (cor 0)
+   (desenha-txt " - Item Normal      ")
+   
+   (desenha-txt "                        Pontuação:        ")
+   (desenha-txt "                    Pontuação Máxima:    ")))
+
+(define load-pontalta 
+  (lambda ()
+         (if (not(file-exists? "snakescheme_score.txt"))
+         (letrec ((novo-ficheiro (open-output-file "snakescheme_score.txt")))
+           (display 0 novo-ficheiro)
+           (close-output-port novo-ficheiro)))
+    (set! pontalta (read(open-input-file "snakescheme_score.txt")))
+    (move pontalta-pos)
+    (cor 0)
+   (desenha-txt (number->string  pontalta))))     
+
+
+
+;desenha high-score
+(define atualiza-pontuacao
+ (lambda (pontos)
+   (move pont-pos)
+   (cor 26)
+   (desenha-txt (number->string  pont))
+   
+   (move pont-pos)
+   (cor 0)
+   (set! pont (+ pont pontos))
+   (desenha-txt (number->string  pont))
+   (if (> pont pontalta)
+       (begin
+         (move pontalta-pos)
+         (cor 26)
+         (desenha-txt (number->string (- pont pontos)))
+         
+         (move pontalta-pos)
+         (cor 0)
+         (desenha-txt (number->string  pont))))))
 
 ;procedimento de inicio do jogo
 (define jogo
@@ -67,7 +137,11 @@
                       
                   ;repete o cilo principal do jogo
                   (principal snake) ;(begin (tecla-pressionada #t) (jogo snake))
-                  )))))
+                  )
+                  (if (> pont pontalta)
+                      (letrec ((guarda-pontalta (open-output-file "snakescheme_score.txt" 'replace)))
+                  (display pont guarda-pontalta)
+                  (close-output-port guarda-pontalta)))))))
              (principal snake))))
              
              
@@ -117,7 +191,8 @@
           (begin
             ;cancela a eliminação do ultimo pixel, aumentando o tamanho da cobra
             (set! snake-next (append (list (car snake)) snake-next))
-            (set! objeto (novo-objeto snake-next))) 
+            (set! objeto (novo-objeto snake-next))
+            (atualiza-pontuacao 1)) 
           ;elimina o ultimo pixel da serpente
           (celula tabjogo (caar snake) (cdr (car snake)) 'l 26))
       
@@ -126,7 +201,7 @@
 
 
 
-    
-
-
+(load-pontalta)    
+(init-legenda)
+(atualiza-pontuacao 0)
 (jogo init-snake)
