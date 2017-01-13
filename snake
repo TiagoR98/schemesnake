@@ -6,6 +6,7 @@
 ;janela do jogo
 (janela 1190 720 "schemesnake alpha")
 
+
 (define tabjogo (tabuleiro 10 690 30 39 22))
 
 ;cria posicao inicial cobra
@@ -19,14 +20,13 @@
     
      ;se a posição do novo objeto coincidir com a serpente, gera novascoordenadas
      (if (member coord snake)
-         (novo-objeto snake))
-    
-      
+         (novo-objeto snake)
+         (begin
     ;cria o objeto na célua indicada (símbolo e fundo)
     (celula tabjogo (car coord) (cdr coord) 'l 18)
     (celula tabjogo (car coord) (cdr coord) 'x 26)
       
-      coord)))
+      coord)))))
 
 (define objeto (novo-objeto init-snake))
 
@@ -105,6 +105,10 @@
     ;incialização da cobra
     (celulas tabjogo snake 'l 0 0)
     
+    (load-pontalta)    
+    (init-legenda)
+    (atualiza-pontuacao 0)
+    
     (letrec ((snake init-snake)
              (direcao 'right)
              ;procedimento auxiliar responsável por ler o teclado e atualizar recusivamente o jogo
@@ -133,15 +137,17 @@
                   (if (not (eq? temp #f)) (set! snake temp)) 
                   
                   ;termina o jogo em caso de derrota
-                  (if (not(eq? temp #f))
-                      
+                  (if (not(eq? temp #f))    
                   ;repete o cilo principal do jogo
                   (principal snake) ;(begin (tecla-pressionada #t) (jogo snake))
-                  )
+                  (begin
                   (if (> pont pontalta)
                       (letrec ((guarda-pontalta (open-output-file "snakescheme_score.txt" 'replace)))
                   (display pont guarda-pontalta)
-                  (close-output-port guarda-pontalta)))))))
+                  (close-output-port guarda-pontalta)))
+                  (sleep 3)
+                  (tecla-pressionada #t)
+                  (fecha-janela)))))))
              (principal snake))))
              
              
@@ -201,7 +207,5 @@
 
 
 
-(load-pontalta)    
-(init-legenda)
-(atualiza-pontuacao 0)
+
 (jogo init-snake)
