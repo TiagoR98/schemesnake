@@ -13,7 +13,7 @@
 (define init-snake (list (cons 0 2) (cons 1 2) (cons 1 3) (cons 1 4) (cons 1 5) (cons 2 5)))
 
 ;lista dos tipos de objetos disponiveis
-(define tipo-objeto (list (cons 'p 18) (cons'n 3) (cons's 2)))
+(define tipo-objeto (list (cons 'p 3) (cons'n 18) (cons's 2)))
 ;objeto atual no jogo
 (define indice-item-atual 0)
 
@@ -77,12 +77,12 @@
    (move (list 10 10))
    (desenha-txt "Legenda:     ")
    
-   (cor 18)
+   (cor 3)
    (desenha-txt (symbol->string '●))
    (cor 0)
    (desenha-txt " - Item Normal      ")
    
-   (cor 3)
+   (cor 18)
    (desenha-txt (symbol->string '↑))
    (cor 0)
    (desenha-txt " - Item Rápido     ")
