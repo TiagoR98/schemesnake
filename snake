@@ -4,17 +4,21 @@
 (require (lib "swgr.scm" "user-feup"))
 (require (lib "graphics.ss" "graphics"))
 
+;abre a janela inicial
 (open-graphics)
 
-(define janela-ini (open-viewport "🐍  Scheme λ Snake  (alpha build)  🐍" 1190 720))
+(define janela-ini (open-viewport "🐍  Scheme λ Snake  🐍" 1190 720))
+;desenha a imagem inicial na tela
 (((draw-pixmap-posn "titulo.bmp" 'bmp) janela-ini) (make-posn 0 0) #f)
 
+;tempo de espera até fechar a janela
 (sleep 6)
 
+;fecha a janela inicial
 (close-graphics)
 
 ;janela do jogo
-(janela 1190 720 "🐍  Scheme λ Snake  (alpha build)  🐍")
+(janela 1190 720 "🐍  Scheme λ Snake  🐍")
 (define tabjogo (tabuleiro 10 690 30 39 22))
 
 ;variavel que determina se o jogo fica invertido
@@ -84,7 +88,7 @@
    
    (move (list 10 698))
    (cor 0)
-   (desenha-txt "🐍  Scheme λ Snake  (alpha build)  🐍                       Fundamentos da Programação  FEUP  2017                         Programado por Tiago Ribeiro")
+   (desenha-txt "🐍  Scheme λ Snake  🐍                                    Fundamentos da Programação  FEUP  2017                                    Programado por Tiago Ribeiro")
    
    
    (move (list 10 10))
@@ -117,13 +121,13 @@
 (define load-pontalta 
   (lambda ()
     
-         (if (not(file-exists? "snakescheme_score.txt"))
+         (if (not(file-exists? "schemesnake_score.txt"))
              ;se nao exitir ficheiro de pontuacao alta e criado um novo com o valor 0
-         (letrec ((novo-ficheiro (open-output-file "snakescheme_score.txt")))
+         (letrec ((novo-ficheiro (open-output-file "schemesnake_score.txt")))
            (display 0 novo-ficheiro)
            (close-output-port novo-ficheiro)))
     ;carregar o valor do ficheiro para a pontuacao alta atual
-    (set! pontalta (read(open-input-file "snakescheme_score.txt")))
+    (set! pontalta (read(open-input-file "schemesnake_score.txt")))
     (move pontalta-pos)
     (cor 0)
    (desenha-txt (number->string  pontalta))))     
@@ -205,6 +209,8 @@
                 ;mudança de direção apenas se for pressionada uma tecla
                 (if (not (void? tecla))
                     (begin
+                      
+                    ;se o jogo estiver invertido, a tecla pressionada pelo utilizodor será alterada para a oposta
                     (if inverte
                         (cond
                                     ((eq? tecla 'right) (set! tecla 'left))
