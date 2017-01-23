@@ -1,19 +1,34 @@
 ;bibliotecas necessarias
-(require (lib "swgr.scm" "user-feup"))
 (require (lib "tabuleiro.scm" "user-feup"))
+(require (lib "audio.scm" "user-feup"))
+(require (lib "swgr.scm" "user-feup"))
+(require (lib "graphics.ss" "graphics"))
 
+;abre a janela inicial
+(open-graphics)
+
+(define janela-ini (open-viewport "🐍  Scheme λ Snake  🐍" 1190 720))
+;desenha a imagem inicial na tela
+(((draw-pixmap-posn "titulo.bmp" 'bmp) janela-ini) (make-posn 0 0) #f)
+
+;tempo de espera até fechar a janela
+(sleep 6)
+
+;fecha a janela inicial
+(close-graphics)
 
 ;janela do jogo
-(janela 1190 720 "🐍  Scheme λ Snake  (alpha build)  🐍")
-
-
+(janela 1190 720 "🐍  Scheme λ Snake  🐍")
 (define tabjogo (tabuleiro 10 690 30 39 22))
+
+;variavel que determina se o jogo fica invertido
+(define inverte #f)
 
 ;cria posicao inicial cobra
 (define init-snake (list (cons 0 2) (cons 1 2) (cons 1 3) (cons 1 4) (cons 1 5) (cons 2 5)))
 
 ;lista dos tipos de objetos disponiveis
-(define tipo-objeto (list (cons 'p 3) (cons'n 18) (cons's 2)))
+(define tipo-objeto (list (cons 'p 3) (cons'n 18) (cons's 2) (cons 'x 20)))
 ;objeto atual no jogo
 (define indice-item-atual 0)
 
@@ -37,16 +52,18 @@
            
            ;analisa o objeto comido anteriormente e ajusta a jogabilidade de acordo com o seu tipo
            (cond 
-             ((= indice-item-atual 0) (set! velocidade-atual (list-ref velocidade 0)))
-             ((= indice-item-atual 1) (set! velocidade-atual (list-ref velocidade 1)))
-             ((= indice-item-atual 2) (set! velocidade-atual (list-ref velocidade 2))))
+             ((= indice-item-atual 0) (set! velocidade-atual (list-ref velocidade 0)) (set! inverte #f))
+             ((= indice-item-atual 1) (set! velocidade-atual (list-ref velocidade 1)) (set! inverte #f))
+             ((= indice-item-atual 2) (set! velocidade-atual (list-ref velocidade 2)) (set! inverte #f))
+             ((= indice-item-atual 3) (set! velocidade-atual (list-ref velocidade 0)) (set! inverte #t)))
            
            ;define o objeto atual a ser desenhado no tabuleiro
            ;cada objeto tem uma determinada probabilidade de aparecer de acordo com o valor gerado anteriormente (0%-100%)
            (cond 
              ;se o objeto for o primeiro do jogo, entao ignora-se o valor gerado e são establecidas as regras iniciais
-             ((or (<= item-atual 70) primeiro) (set! indice-item-atual 0))
-             ((and (<= item-atual 85) (> item-atual 50)) (set! indice-item-atual 1))
+             ((or (<= item-atual 60) primeiro) (set! indice-item-atual 0))
+             ((and (<= item-atual 70) (> item-atual 60)) (set! indice-item-atual 3))
+             ((and (<= item-atual 85) (> item-atual 70)) (set! indice-item-atual 1))
              ((and (<= item-atual 100) (> item-atual 85)) (set! indice-item-atual 2)))
            
            
@@ -63,7 +80,7 @@
 (define pontalta 0)
 (define pont 0)
 (define pontalta-pos (list 1120 10))
-(define pont-pos (list 820 10))
+(define pont-pos (list 870 10))
 
 ;desenha legenda
 (define init-legenda
@@ -71,41 +88,46 @@
    
    (move (list 10 698))
    (cor 0)
-   (desenha-txt "🐍  Scheme λ Snake  (alpha build)  🐍                       Fundamentos da Programação  FEUP  2017                         Programado por Tiago Ribeiro")
+   (desenha-txt "🐍  Scheme λ Snake  🐍                                    Fundamentos da Programação  FEUP  2017                                    Programado por Tiago Ribeiro")
    
    
    (move (list 10 10))
-   (desenha-txt "Legenda:     ")
+   (desenha-txt "Legenda:  ")
    
    (cor 3)
    (desenha-txt (symbol->string '●))
    (cor 0)
-   (desenha-txt " - Item Normal      ")
+   (desenha-txt " - Item Normal    ")
    
    (cor 18)
    (desenha-txt (symbol->string '↑))
    (cor 0)
-   (desenha-txt " - Item Rápido     ")
+   (desenha-txt " - Item Rápido    ")
    
    (cor 2)
    (desenha-txt (symbol->string '↓))
    (cor 0)
-   (desenha-txt " - Item Lento      ")
+   (desenha-txt " - Item Lento     ")
    
-   (desenha-txt "                        Pontuação:        ")
-   (desenha-txt "                    Pontuação Máxima:    ")))
+   (cor 20)
+   (desenha-txt (symbol->string 'X))
+   (cor 0)
+   (desenha-txt " - Item Invertido   ")
+   
+   (desenha-txt "             Pontuação:        ")
+   (desenha-txt "         Pontuação Máxima:    ")))
 
 ;carrega a pontuacao mais alta
 (define load-pontalta 
   (lambda ()
     
-         (if (not(file-exists? "snakescheme_score.txt"))
+         (if (not(file-exists? "schemesnake_score.txt"))
              ;se nao exitir ficheiro de pontuacao alta e criado um novo com o valor 0
-         (letrec ((novo-ficheiro (open-output-file "snakescheme_score.txt")))
+         (letrec ((novo-ficheiro (open-output-file "schemesnake_score.txt")))
            (display 0 novo-ficheiro)
            (close-output-port novo-ficheiro)))
     ;carregar o valor do ficheiro para a pontuacao alta atual
-    (set! pontalta (read(open-input-file "snakescheme_score.txt")))
+    (set! pontalta (read(open-input-file "schemesnake_score.txt")))
     (move pontalta-pos)
     (cor 0)
    (desenha-txt (number->string  pontalta))))     
@@ -146,6 +168,31 @@
     (init-legenda)
     (atualiza-pontuacao 0)
     
+    ;musica de abertura
+    (som "la")
+    (sleep 0.05)
+    (som "do")
+    (sleep 0.05)
+    (som "re")
+    (sleep 0.5)
+    (som "la")
+    (sleep 0.05)
+    (som "do")
+    (sleep 0.05)
+    (som "mi")
+    (som "re")
+    (sleep 0.4)
+    (som "la")
+    (sleep 0.05)
+    (som "do")
+    (sleep 0.05)
+    (som "re")
+    (sleep 0.1)
+    (som "do")
+    (sleep 0.05)
+    (som "la")
+
+    
     (letrec ((snake init-snake)
              (direcao 'right)
              ;procedimento auxiliar responsável por ler o teclado e atualizar recusivamente o jogo
@@ -161,12 +208,24 @@
                   
                 ;mudança de direção apenas se for pressionada uma tecla
                 (if (not (void? tecla))
-                    ;impede que o jogador vire a cobra contra si mesma (180 graus)
+                    (begin
+                      
+                    ;se o jogo estiver invertido, a tecla pressionada pelo utilizodor será alterada para a oposta
+                    (if inverte
+                        (cond
+                                    ((eq? tecla 'right) (set! tecla 'left))
+                                    ((eq? tecla 'left) (set! tecla 'right))
+                                    ((eq? tecla 'up) (set! tecla 'down))
+                                    ((eq? tecla 'down) (set! tecla 'up))))
+                    
+                     ;impede que o jogador vire a cobra contra si mesma (180 graus)
                     (if (not(or (and (eq? direcao 'right) (eq? tecla 'left))
                             (and (eq? direcao 'left) (eq? tecla 'right))
                             (and (eq? direcao 'up) (eq? tecla 'down))
                             (and (eq? direcao 'down) (eq? tecla 'up))))
-                    (set! direcao tecla)))
+                            
+                              
+                    (set! direcao tecla))))
                   
                   
                   ;chamada pelo procedimento que calcula a nova cobra após um novo instante do jogo
@@ -187,7 +246,8 @@
                   (close-output-port guarda-pontalta)))
                   (sleep 3)
                   (tecla-pressionada #t)
-                  (fecha-janela)))))))
+                  (fecha-janela)
+                 ))))))
       
              (principal snake))))
              
@@ -203,8 +263,8 @@
            ;obtenção das coordenadas do primeiro pixel da cobra (atual)
              (x (car (list-ref snake-next (sub1 (length snake-next)))))
              (y (cdr (list-ref snake-next (sub1 (length snake-next))))))
-      
-      ;cálculo do primeiro pixel da nova cobra de acordo com a direção do jogo
+          
+       ;cálculo do primeiro pixel da nova cobra de acordo com a direção do jogo 
       (cond
         ((eq? direcao 'right) (set! x (add1 x)))
         ((eq? direcao 'left) (set! x (sub1 x)))
@@ -223,6 +283,8 @@
           (begin
             (cor 18)
             (desenha-txt "Game Over")
+            ;som fim de jogo
+            (som "bomba1")
             #f)
           
           (begin
@@ -245,6 +307,5 @@
       
       ;retorno da nova lista da cobra
       snake-next)))))
-
 
 (jogo init-snake)

@@ -241,13 +241,11 @@
                   (begin
                    ;se a pontuacao alta for superior a anterior, gurada-a no ficheiro
                   (if (> pont pontalta)
-                      (letrec ((guarda-pontalta (open-output-file "snakescheme_score.txt" 'replace)))
+                      (letrec ((guarda-pontalta (open-output-file "schemesnake_score.txt" 'replace)))
                   (display pont guarda-pontalta)
                   (close-output-port guarda-pontalta)))
-                  (sleep 3)
-                  (tecla-pressionada #t)
-                  (fecha-janela)
-                 ))))))
+                  (sleep 1)
+                  (fecha-janela)))))))
       
              (principal snake))))
              
@@ -281,8 +279,8 @@
       (if (member (cons x y) snake)
           ;escreve mensagem fim de jogo
           (begin
-            (cor 18)
-            (desenha-txt "Game Over")
+            ;pinta a cobra de vermelho
+            (celulas tabjogo (reverse snake) 'l 20 18)
             ;som fim de jogo
             (som "bomba1")
             #f)
@@ -309,3 +307,15 @@
       snake-next)))))
 
 (jogo init-snake)
+;abre a janela de game over
+(open-graphics)
+
+(define janela-ini (open-viewport "🐍  Scheme λ Snake  🐍" 1190 720))
+;desenha a imagem na tela
+(((draw-pixmap-posn "gameover.bmp" 'bmp) janela-ini) (make-posn 0 0) #f)
+
+;tempo de espera até fechar a janela
+(sleep 6)
+
+;fecha a janela de game over
+(close-graphics)
